@@ -22,7 +22,7 @@ When you are ready to show 24-hour graphs or moisture trends, you simply plug a 
 ## schematic: workflow
 This diagram shows how Phase 1 (Solid lines) and Phase 2 (Dashed lines) live together.
 
-
+![diagram](diagram.png)
 
 ## motivation
 * **Privacy by Design:** You aren't storing emails or passwords. If your database were hacked, the only thing leaked is a bunch of moisture readings tied to a random code like B2A1.
