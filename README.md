@@ -22,7 +22,39 @@ When you are ready to show 24-hour graphs or moisture trends, you simply plug a 
 ## schematic: workflow
 This diagram shows how Phase 1 (Solid lines) and Phase 2 (Dashed lines) live together.
 
-![diagram](diagram.png)
+```mermaid
+graph TD
+    subgraph "Glasshouse (User's Home)"
+        ESP[ESP32 Device]
+        Sensors[Moisture/Light Sensors] --> ESP
+        ESP --> Relays[Pump/Light Switches]
+    end
+
+    subgraph "Cloud Layer (The Middlemen)"
+        Broker{{"MQTT Broker (Live Hub)"}}
+        DB[("Database (History Hub)
+        e.g. Supabase")]
+    end
+
+    subgraph "User Interface (The Phone)"
+        App[Web App / PWA
+        Hosted on GitHub Pages]
+        Storage[(Local Storage:
+        Stores Pairing Code)]
+    end
+
+    %% Phase 1 Connections (Live)
+    ESP <== "Publish Live Data" ==> Broker
+    Broker <== "Live Updates / Commands" ==> App
+    App --- Storage
+
+    %% Phase 2 Connections (History)
+    ESP -. "Periodic Data Log (HTTP)" .-> DB
+    DB -. "Fetch History (API Call)" .-> App
+
+    style Broker fill:#fdf,stroke:#333
+    style DB fill:#def,stroke:#333,stroke-dasharray: 5 5
+```
 
 ## motivation
 * **Privacy by Design:** You aren't storing emails or passwords. If your database were hacked, the only thing leaked is a bunch of moisture readings tied to a random code like B2A1.
