@@ -1,4 +1,5 @@
 # project structure
+
 ## phase 1: live updates
 This setup is fast, private, and costs $0 to run. It acts like a "Live Dashboard" that shows what is happening right now.
 Setup (The First Boot): The ESP32 starts in Access Point mode. The user connects their phone to the "Glasshouse-Setup" Wi-Fi. A Captive Portal pops up where they enter their home Wi-Fi password. The device saves this and reboots.
