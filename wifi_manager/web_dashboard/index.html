@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart Glasshouse Dashboard</title>
+  
+  <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+  
+  <style>
+    body { font-family: -apple-system, sans-serif; background-color: #f4f7f6; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+    .card { background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 350px; text-align: center; }
+    h2 { margin: 0 0 5px 0; color: #333; }
+    #status { font-size: 0.8rem; color: #888; margin-bottom: 20px; font-weight: bold; }
+    .sensor-readout { font-size: 3rem; font-weight: bold; color: #4CAF50; margin: 20px 0; }
+    .btn-group { display: flex; gap: 10px; justify-content: center; margin-top: 20px; }
+    button { flex: 1; padding: 12px; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; color: white; transition: 0.2s; }
+    .btn-on { background-color: #2196F3; }
+    .btn-on:hover { background-color: #1976D2; }
+    .btn-off { background-color: #f44336; }
+    .btn-off:hover { background-color: #d32f2f; }
+  </style>
+</head>
+<body>
+
+  <div class="card">
+    <h2>Glasshouse</h2>
+    <div id="status">🔴 Disconnected</div>
+    
+    <div class="sensor-readout">
+      <span id="moisture-val">--</span>%
+    </div>
+    <p style="color: #666; margin-top: -15px;">Current Moisture</p>
+
+    <div class="btn-group">
+      <button class="btn-on" onclick="sendCmd('PUMP_ON')">Pump ON</button>
+      <button class="btn-off" onclick="sendCmd('PUMP_OFF')">Pump OFF</button>
+    </div>
+  </div>
+
+  <script>
+    // --- 1. CONFIGURATION ---
+    // IMPORTANT: Note the 'wss://' and port '8884' for WebSockets!
+    const brokerUrl = 'wss://24d796bf3e444971acbc9fef04cf1ef7.s1.eu.hivemq.cloud:8884/mqtt';
+    const username = 'tester';
+    const password = 'tester123T';
+    
+    const DEVICE_ID = 'C3D4';
+    const subTopic = `glasshouse/${DEVICE_ID}/moisture`;
+    const pubTopic = `glasshouse/${DEVICE_ID}/commands`;
+
+    // Generate a random client ID for the browser
+    const clientId = 'web-app-' + Math.random().toString(16).substring(2, 8);
+
+    // --- 2. CONNECT TO HIVEMQ ---
+    const client = mqtt.connect(brokerUrl, {
+      clientId: clientId,
+      username: username,
+      password: password,
+      clean: true
+    });
+
+    // --- 3. HANDLE CONNECTION & MESSAGES ---
+    client.on('connect', () => {
+      console.log('Connected to MQTT Broker via WebSockets!');
+      document.getElementById('status').innerText = '🟢 Connected';
+      
+      // Subscribe to the moisture topic
+      client.subscribe(subTopic);
+    });
+
+    client.on('message', (topic, message) => {
+      // When a new moisture reading comes in, update the big number on screen
+      if (topic === subTopic) {
+        document.getElementById('moisture-val').innerText = message.toString();
+      }
+    });
+
+    client.on('error', (err) => {
+      console.error('Connection error: ', err);
+      document.getElementById('status').innerText = '🔴 Connection Error';
+    });
+
+    // --- 4. BUTTON CLICK FUNCTION ---
+    function sendCmd(command) {
+      console.log('Publishing command:', command);
+      client.publish(pubTopic, command);
+    }
+  </script>
+</body>
+</html>
